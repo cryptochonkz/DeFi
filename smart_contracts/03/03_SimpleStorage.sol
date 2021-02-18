@@ -1,6 +1,6 @@
 pragma solidity ^0.5.0;
 
-contract SimpleStorage{
+contract SimpleStorage {
     string public data;
     
     function set(string memory _data ) public {
