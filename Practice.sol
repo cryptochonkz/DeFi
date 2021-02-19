@@ -1,26 +1,21 @@
 pragma solidity ^0.5.0;
 
-contract EtherWallet{
-
+contract SplitPayment {
   address public owner;
 
-  constructor(address _owner) {
+  constructor(address _owner) public{
     owner = _owner;
   }
 
-  function deposit() payable public{
-
-  }
-
-  function send(address to, uint amount) public{
-    if(msg.sender == owner){
-      to.transfer(amount);
-      return;
+  function send(address payable[] memory to, uint[] memory amount) payable onlyOwner() public{
+    require(to.length == amount.length, "must be same");
+    for(uint i = 0; i < to.length; i++) {
+      to[i].transfer(amount[i]);
     }
-    revert("Sender not allowed");
   }
 
-  function balanceOf() view public returns(uint ){
-    return address(this).balance;
+  modifier onlyOwner() {
+    require(msg.sender == owner, "Not allowed");
+    _;
   }
 }
