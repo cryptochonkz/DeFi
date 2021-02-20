@@ -1,21 +1,23 @@
 pragma solidity ^0.5.0;
 
-contract SplitPayment {
-  address public owner;
+contract Deed {
+  address public lawyer;
+  address payable public beneficiary;
+  uint public earliest;
 
-  constructor(address _owner) public{
-    owner = _owner;
+  constructor(
+    address _lawyer,
+    address payable _beneficiary,
+    uint fromNow
+  ) payable public{
+    lawyer = _lawyer;
+    beneficiary = _beneficiary;
+    earliest = now + fromNow;
   }
 
-  function send(address payable[] memory to, uint[] memory amount) payable onlyOwner() public{
-    require(to.length == amount.length, "must be same");
-    for(uint i = 0; i < to.length; i++) {
-      to[i].transfer(amount[i]);
-    }
-  }
-
-  modifier onlyOwner() {
-    require(msg.sender == owner, "Not allowed");
-    _;
+  function withdraw() public{
+    require(msg.sender == lawyer, "not allowed");
+    require(now >= earliest, "too early");
+    beneficiary.transfer(address(this).balance);
   }
 }
