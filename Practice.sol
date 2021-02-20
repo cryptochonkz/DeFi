@@ -4,6 +4,10 @@ contract Deed {
   address public lawyer;
   address payable public beneficiary;
   uint public earliest;
+  uint public amount;
+  uint constant public PAYOUTS = 10;
+  uint constant public INTERVAL = 10;
+  uint public paidPayouts;
 
   constructor(
     address _lawyer,
@@ -13,6 +17,7 @@ contract Deed {
     lawyer = _lawyer;
     beneficiary = _beneficiary;
     earliest = now + fromNow;
+    amount = msg.value / PAYOUTS;
   }
 
   function withdraw() public{
