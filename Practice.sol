@@ -1,70 +1,53 @@
 pragma solidity ^0.5.2;
+pragma experimental ABIEncoderV2;
 
-contract MultiSig {
-  address[] public approvers;
-  uint public quorum;
+contract Voting {
 
-  struct Transfer {
+  mapping(address => bool) public voters;
+  mapping(uint => Ballot) public ballots;
+  address public admin;
+  uint public nextBallotId;
+
+  struct Choice{
     uint id;
-    uint amount;
-    address payable to;
-    uint approvals;
-    bool sent
+    string name;
+    uint votes;
   }
 
-  mapping(nextId => Transfer) transfers;
-  uint public nextId;
-  mapping(address => mapping(uint => bool)) approvals;
+  struct Ballot {
+    uint id;
+    string name;
+    Choice[] choices;
+    uint end;
+  }
 
-  constructor(
-    address[] memory _approvers,
-    uint _quorum
-  ) 
-  payable public
-  {
-    approvers = _approvers;
-    quorum = _quorum;
+  constructor() public {
+    msg.sender = admin;
+  }
+
+  function addVoters(address[] calldata _voters) external onlyAdmin() {
+    for(uint i = 0; i < _voters.length; i++) {
+      voters[_voters[i]] = true;
+    }
 
   }
 
-  function createTransfer(uint amount, address payable to) 
-    external  onlyApprover()
-    {
-      transfers[nextId] = Transfer {
-        nextId,
-        amount,
-        to,
-        0,
-        false
-      };
-      nextId++;
-   }
-
-   function sendTransfer(uint id) external onlyApprover(){
-      require(transfers[id].sent == false, "The transfer has been sent");
-      if(approvals[msg.sender][id] == false) {
-        approvals[msg.sender][id] = true;
-        transfers[id].approvals++;
+  function createBallot(
+    string memory name,
+    string[] memory choices,
+    uint offset
+  ) public  onlyAdmin() {
+      ballots[nextBallotId].id =nextBallotId;
+      ballots[nextBallotId].name = name;
+      ballots[nextBallotId].end = now + offset;
+      for(uint i = 0; i < choices.length; i++) {
+        ballots[nextBallotId].choices.push(Choice(i, choice[i],0));
       }
+  }
 
-      if(transfers[id].approvals >= quorum) {
-        uint amount = transfers[id].amount;
-        address payable to = transfers[id].to;
-        to.transfer(amount);
-        transfers[id].sent = true;
-        return;
-      }
-   }
 
-   modifier onlyApprover(){
-     bool allowed = false;
-     for(uint i = 0; i < approvers.length; i++) {
-       if(approvers[i] == msg.sender) {
-         allowed = true;
-       }
-     }
-
-     require(allowed == true, "Not allowed");
-     _;
-   }
+  modifier onlyAdmin() {
+    require(msg.sender == admin, "not allowed");
+    _;
+  }
 }
