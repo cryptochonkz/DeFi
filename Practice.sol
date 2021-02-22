@@ -5,6 +5,7 @@ contract Voting {
 
   mapping(address => bool) public voters;
   mapping(uint => Ballot) public ballots;
+  mapping(address => mapping(uint => bool)) public votes;
   address public admin;
   uint public nextBallotId;
 
@@ -44,6 +45,21 @@ contract Voting {
         ballots[nextBallotId].choices.push(Choice(i, choice[i],0));
       }
   }
+
+  function vote(uint ballotId, uint choiceId) external {
+    require(voters[msg.sender] == true, "Must be registered");
+    require(votes[msg.sender].ballotId == false, "Already voted");
+    require(ballots[ballotId].end < now, "Already late");
+    votes[msg.sender].ballotId = true;
+    ballots[ballotId].choices[choiceId].votes++;
+  }
+
+    function results(uint ballotId) 
+        view 
+        external
+        returns(Choice[] memory) {
+            return ballots[ballotId].choices;
+        }
 
 
   modifier onlyAdmin() {
