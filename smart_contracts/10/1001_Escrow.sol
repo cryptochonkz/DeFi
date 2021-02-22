@@ -10,7 +10,7 @@ contract Escrow {
         address _payer,
         address payable _payee,
         uint _amount
-        ) payable public {
+        ) public {
         payer = _payer;
         payee = _payee;
         lawyer = msg.sender;

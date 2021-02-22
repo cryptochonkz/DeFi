@@ -1,34 +1,35 @@
 pragma solidity ^0.5.2;
 
 contract Escrow {
-  address public payer;
-  address payable public payee;
   address public lawyer;
   uint public amount;
+  address payable public payer;
+  address public payee;
 
   constructor(
-    address _payer;
-    address payable _payee;
-    uint _amount;
-  ) payable public {
+    address payable _payer;
+    address _payee;
+    uint amount;
+  ) public {
     msg.sender = lawyer;
+    amount = _amount;
     payer = _payer;
     payee = _payee;
-    amount = _amount;
   }
 
-  function deposit() payable public{
+  function deposit() payable public {
     require(msg.sender == payer, "must be payer");
-    require(address(this).balance <= amount, "must be equal or superior de amount");
+    require(address(this).balance <= amount);
   }
 
-  function release() public {
+  function withdraw() public {
     require(msg.sender == lawyer, "must be lawyer");
-    require(address(this).balance == amount, "cannot be released");
+    require(address(this).balance == amount, "must be balance")
     payee.transfer(amount);
-      }
+  }
 
-  function balanceOf() view public returns(uint){
+
+  funciton balanceOf() view public returns(uint){
     return address(this).balance;
   }
 }
