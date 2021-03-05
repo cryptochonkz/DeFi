@@ -12,6 +12,7 @@ const kyber = new web3.eth.Contract(
   abis.kyber.kyberNetworkProxy,
   addresses.kyber.kyberNetworkProxy
 );
+web3.eth.accounts.wallet.add(process.env.PRIVATE_KEY);
 
 const AMOUNT_ETH = 100;
 const RECENT_ETH_PRICE = 230;
