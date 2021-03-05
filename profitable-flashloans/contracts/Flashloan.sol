@@ -65,13 +65,37 @@ contract Flashloan is ICallee, DydxFlashloanBase {
             address(this), 
             now
           );
+        } else {
+          //Buy ETH on Uniswap
+          dai.approve(address(uniswap), balanceDai); 
+          address[] memory path = new address[](2);
+          path[0] = address(dai);
+          path[1] = address(weth);
+          uint[] memory minOuts = uniswap.getAmountsOut(balanceDai, path); 
+          uniswap.swapExactTokensForETH(
+            balanceDai, 
+            minOuts[1], 
+            path, 
+            address(this), 
+            now
+          );
+
+          //Sell ETH on Kyber
+          (uint expectedRate, ) = kyber.getExpectedRate(
+            IERC20(KYBER_ETH_ADDRESS), 
+            dai, 
+            address(this).balance
+          );
+          kyber.swapEtherToToken.value(address(this).balance)(
+            dai, 
+            expectedRate
+          );
         }
 
         require(
             balanceDai >= arbInfo.repayAmount,
             "Not enough funds to repay dydx loan!"
         );
-
     }
 
     function initiateFlashloan(
