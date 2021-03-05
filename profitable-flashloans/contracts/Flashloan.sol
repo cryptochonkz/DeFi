@@ -16,10 +16,17 @@ contract Flashloan is ICallee, DydxFlashloanBase {
         uint repayAmount;
     }
 
+    event NewArbitrage (
+      Direction direction,
+      uint profit,
+      uint date
+    );
+
     IKyberNetworkProxy kyber;
     IUniswapV2Router02 uniswap;
     IWeth weth;
     IERC20 dai;
+    address beneficiary;
     address constant KYBER_ETH_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     constructor(
@@ -27,11 +34,13 @@ contract Flashloan is ICallee, DydxFlashloanBase {
         address uniswapAddress,
         address wethAddress,
         address daiAddress,
+        address beneficiaryAddress
     ) public {
       kyber = IKyberNetworkProxy(kyberAddress);
       uniswap = IUniswapV2Router02(uniswapAddress);
       weth = IWeth(wethAddress);
       dai = IERC20(daiAddress);
+      beneficiary = beneficiaryAddress;
     }
 
     // This is the function that will be called postLoan
@@ -93,9 +102,13 @@ contract Flashloan is ICallee, DydxFlashloanBase {
         }
 
         require(
-            balanceDai >= arbInfo.repayAmount,
+            dai.balanceOf(address(this)) >= arbInfo.repayAmount,
             "Not enough funds to repay dydx loan!"
         );
+
+        uint profit = dai.balanceOf(address(this)) - arbInfo.repayAmount; 
+        dai.transfer(beneficiary, profit);
+        emit NewArbitrage(arbInfo.direction, profit, now);
     }
 
     function initiateFlashloan(
@@ -132,6 +145,4 @@ contract Flashloan is ICallee, DydxFlashloanBase {
 
         solo.operate(accountInfos, operations);
     }
-
-    function() external payable {}
 }
